@@ -11,13 +11,23 @@ import axios from "axios";
 
 /* CONFIGURATIONS */
 dotenv.config();
+
 const app = express();
-app.use(express.json());
-app.use(helmet());
-app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
-app.use(morgan("common"));
-app.use(bodyParser.json({ limit: "30mb", extended: true }));
-app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
+app.use(express.json())
+
+// for parsing application/x-www-form-urlencoded
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+)
+
+// app.use(express.json());
+// app.use(helmet());
+// app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
+// app.use(morgan("common"));
+// app.use(bodyParser.json({ limit: "30mb", extended: true }));
+// app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 app.use(cors());
 
 // /* OPEN AI CONFIGURATION */
@@ -37,12 +47,13 @@ const getThePrompt = ({
   occasion = "lunch",
   excludedDishes = [],
 }) => {
-  return `list of ${
+    console.log('ingredients.length ??? ', ingredients)
+  return `list of 10 ${
     isNonVeg ? "non" : ""
   } vegetarian ${cuisine} meal for ${occasion}  ${
-    ingredients.length > 0 ? `that can use ingredients "${ingredients.join(",")}"` : ""
+    ingredients.length > 0 ? `that can use ingredients "${ingredients.join('", "')}"` : ""
   }.${
-    excludedDishes.length > 0 ? ` Exclude "${excludedDishes.join(", ")}" from suggestion` : ""
+    excludedDishes.length > 0 ? ` Exclude "${excludedDishes.join('", "')}" from suggestion` : ""
   }`;
 };
 
@@ -51,6 +62,7 @@ app.post("/openai/text", async (req, res) => {
     //   try {
     const apiKey = process.env.OPENAI_API_KEY; // Replace with your OpenAI API key
 
+    console.log('req ???????', req)
     const prompt = getThePrompt(req.body); // Modify the prompt as needed
 
     const apiUrl =
@@ -63,95 +75,39 @@ app.post("/openai/text", async (req, res) => {
 
     const data = {
       prompt: prompt,
-      max_tokens: 50, // Adjust as needed
+      max_tokens: 4000, // Adjust as needed
     };
+    axios
+      .post(apiUrl, data, { headers })
+      .then((response) => {
+        console.log(response.data);
+        const choicesText = response.data.choices[0].text.trim();
+        const choicesArray = choicesText
+          .split("\n")
+          .filter((item) => item.trim() !== "");
 
-    res.status(200).json({
-      // data: response && response.data ? response.data : [],
-      data: prompt,
-      // choicesJSON,
-    });
-    // axios
-    //   .post(apiUrl, data, { headers })
-    //   .then((response) => {
-    //     console.log(response.data);
-    //     const choicesText = response.data.choices[0].text.trim();
-    //     const choicesArray = choicesText
-    //       .split("\n")
-    //       .filter((item) => item.trim() !== "");
+        // Create an array of choices in JSON format
+        const choicesJSON = choicesArray.map((choice, index) => {
+          return {
+            id: index + 1,
+            name: choice.trim(),
+          };
+        });
+        res.status(200).json({
+        //   data: response && response.data ? response.data : [],
+        data: choicesJSON,
+        prompt,
+        });
+      })
+      .catch((error) => {
+        console.error("Error:", error.message);
+        res.status(500).json({ error });
+      });
 
-    //     // Create an array of choices in JSON format
-    //     const choicesJSON = choicesArray.map((choice, index) => {
-    //       return {
-    //         id: index + 1,
-    //         name: choice.trim(),
-    //       };
-    //     });
-    //     res.status(200).json({
-    //       data: response && response.data ? response.data : [],
-    //       // data: prompt,
-    //       choicesJSON,
-    //     });
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error:", error.message);
-    //     res.status(500).json({ error });
-    //   });
-    //    working
-    //
-    //     const data = await axios.post(
-    //   `https://api.openai.com/v1/chat/completions`,
-    //   {
-    //     model: "gpt-3.5-turbo",
-    //     messages: [
-    //       {
-    //         role: "user",
-    //         content: 'list of non vegetarian Indian meal for dinner that can use ingredients "aloo", "methi", "tomato" and can me cooked in 15 mins. Exclude "Veggie Stir-Fry", "Jeera Rice with Dal" from suggestion',
-    //       },
-    //     ],
-    //   },
-    //   {
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    //     },
-    //   }
-    // );
-    // console.log('@@@@@@@@@@@@@@@@@@@@@@response >>> ', data)
-    //       res.status(200).json({ data: data && data.data ? data.data : [] });
-    //   } catch (error) {
-    //       console.log("first request error : ", error);
-    //       res.status(500).json({ error });
-    //   }
-
-    //   Working end
-
-    // const data = await axios.post(
-    //   `https://api.openai.com/v1/chat/completions`,
-    //   {
-    //     model: "gpt-3.5-turbo",
-    //     messages: [
-    //       {
-    //         role: "user",
-    //         content: "Hello!",
-    //       },
-    //     ],
-    //   },
-    //   {
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    //     },
-    //   }
-    // );
-    // const response = await axios.post('https://api.openai.com/v1/engines/text-davinci-003/completions', {
-    //   prompt: text,
-    //   max_tokens: 50, // Adjust as needed
-    // }, {
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-    //   }
+    // res.status(200).json({
+    //   // data: response && response.data ? response.data : [],
+    // //   data: prompt,
+    //   data: choicesJSON,
     // });
 
     // res.status(200).json({ data });
