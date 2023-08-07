@@ -1,12 +1,12 @@
 import React, { Component } from "react";
-import { Col, Layout, Menu, Row } from "antd";
+import { Col, Layout, Menu, Row, Icon } from "antd";
 
 import { Link, Route, Switch } from "react-router-dom";
 
 import Posts from "./Posts";
 import Gallery from "./Gallery";
 import Tasks from "./Tasks";
-
+import optionMenuIcon from '../assets/images/optionMenu.png'
 class Index extends Component {
 	render() {
 		const { Header, Content, Footer } = Layout;
@@ -22,37 +22,19 @@ class Index extends Component {
 					<div className="square">
 						<Layout>
 							<Header>
-								<div className="logo" />
-								<Menu
-									theme="dark"
-									defaultOpenKeys={[defaultOpenKeys]}
-									selectedKeys={[selectedKeys]}
-									mode="horizontal"
-									style={{ lineHeight: "64px" }}
-								>
-									<Menu.Item key="feeds">
-										<Link to="/feeds">Posts</Link>
-									</Menu.Item>
-									<Menu.Item key="gallery">
-										<Link to="/gallery">Gallery</Link>
-									</Menu.Item>
-									<Menu.Item key="tasks">
-										<Link to="/tasks">Tasks</Link>
-									</Menu.Item>
-									{/*<Menu.Item key="users">
-							<Link to="/users">Users</Link>
-
-                        </Menu.Item>*/}
-								</Menu>
+								<div style={{display: "flex", alignItems: 'center'}}>
+									<img src={optionMenuIcon} style={{height: '20px', width: '20px'}} />
+									<div style={{ color: "white", marginLeft: '20px' }}>Dough-nut Worry</div>
+								</div>
 							</Header>
 							<Content style={{ padding: "0 50px" }}>
 								<Switch>
-									<Route
+									{/* <Route
 										path={`${match.url}feeds`}
 										breadcrumbName="Posts"
 										component={Posts}
-									/>
-									<Route
+									/> */}
+									{/* <Route
 										path={`${match.url}gallery`}
 										breadcrumbName="Gallery"
 										component={Gallery}
@@ -61,13 +43,13 @@ class Index extends Component {
 										path={`${match.url}tasks`}
 										breadcrumbName="Tasks"
 										component={Tasks}
-									/>
+									/> */}
 									{/*<Route path={`${match.url}users`} breadcrumbName="Users" component={Users}/>*/}
 								</Switch>
 							</Content>
-							<Footer style={{ textAlign: "center" }}>
+							{/* <Footer style={{ textAlign: "center" }}>
 								Work of ochomoswill using Ant Design.
-							</Footer>
+							</Footer> */}
 						</Layout>
 					</div>
 				</div>

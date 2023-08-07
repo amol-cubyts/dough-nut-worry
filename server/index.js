@@ -13,14 +13,14 @@ import axios from "axios";
 dotenv.config();
 
 const app = express();
-app.use(express.json())
+app.use(express.json());
 
 // for parsing application/x-www-form-urlencoded
 app.use(
   express.urlencoded({
     extended: true,
   })
-)
+);
 
 // app.use(express.json());
 // app.use(helmet());
@@ -47,13 +47,17 @@ const getThePrompt = ({
   occasion = "lunch",
   excludedDishes = [],
 }) => {
-    console.log('ingredients.length ??? ', ingredients)
+  console.log("ingredients.length ??? ", ingredients);
   return `list of 10 ${
     isNonVeg ? "non" : ""
   } vegetarian ${cuisine} meal for ${occasion}  ${
-    ingredients.length > 0 ? `that can use ingredients "${ingredients.join('", "')}"` : ""
+    ingredients.length > 0
+      ? `that can use ingredients "${ingredients.join('", "')}"`
+      : ""
   }.${
-    excludedDishes.length > 0 ? ` Exclude "${excludedDishes.join('", "')}" from suggestion` : ""
+    excludedDishes.length > 0
+      ? ` Exclude "${excludedDishes.join('", "')}" from suggestion`
+      : ""
   }`;
 };
 
@@ -62,7 +66,7 @@ app.post("/openai/text", async (req, res) => {
     //   try {
     const apiKey = process.env.OPENAI_API_KEY; // Replace with your OpenAI API key
 
-    console.log('req ???????', req)
+    // console.log('req ???????', req)
     const prompt = getThePrompt(req.body); // Modify the prompt as needed
 
     const apiUrl =
@@ -104,18 +108,107 @@ app.post("/openai/text", async (req, res) => {
         res.status(500).json({ error });
       });
 
-    // res.status(200).json({
-    //   // data: response && response.data ? response.data : [],
-    // //   data: prompt,
-    //   data: choicesJSON,
-    // });
+    // axios
+    //   .post(
+    //     `https://api.openai.com/v1/chat/completions`,
+    //     {
+    //       model: "gpt-3.5-turbo",
+    //       messages: [
+    //         {
+    //           role: "user",
+    //           content: prompt,
+    //         },
+    //       ],
+    //     },
+    //     {
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    //       },
+    //     }
+    //   )
+    //   .then((response) => {
+    //     console.log(response.data);
+    //     const choicesText = response.data.choices[0].message.content.trim();
+    //     const choicesArray = choicesText
+    //       .split("\n")
+    //       .filter((item) => item.trim() !== "");
 
-    // res.status(200).json({ data });
+    //     // Create an array of choices in JSON format
+    //     const choicesJSON = choicesArray.map((choice, index) => {
+    //       return {
+    //         id: index + 1,
+    //         name: choice.trim(),
+    //       };
+    //     });
+    //     res.status(200).json({
+    //         data: response.data,
+    //       data: choicesJSON,
+    //     //   prompt,
+    //     });
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error:", error.message);
+    //     res.status(500).json({ error });
+    //   });
   } catch (error) {
     console.error("error", error);
     res.status(500).json({ error: error.message });
   }
 });
+
+app.post("/openai/text/turbo", async (req, res) => {
+    try {
+      const prompt = getThePrompt(req.body); // Modify the prompt as needed
+  
+      axios
+        .post(
+          `https://api.openai.com/v1/chat/completions`,
+          {
+            model: "gpt-3.5-turbo",
+            messages: [
+              {
+                role: "user",
+                content: prompt,
+              },
+            ],
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+            },
+          }
+        )
+        .then((response) => {
+          console.log(response.data);
+          const choicesText = response.data.choices[0].message.content.trim();
+          const choicesArray = choicesText
+            .split("\n")
+            .filter((item) => item.trim() !== "");
+  
+          // Create an array of choices in JSON format
+          const choicesJSON = choicesArray.map((choice, index) => {
+            return {
+              id: index + 1,
+              name: choice.trim(),
+            };
+          });
+          res.status(200).json({
+            //   data: response.data,
+            data: choicesJSON,
+          //   prompt,
+          });
+        })
+        .catch((error) => {
+          console.error("Error:", error.message);
+          res.status(500).json({ error });
+        });
+    } catch (error) {
+      console.error("error", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
 
 /* ROUTES */
 // app.use('/openai', openAiRoutes);
