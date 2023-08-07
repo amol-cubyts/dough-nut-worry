@@ -14,7 +14,7 @@ import {
 // Import all of our components
 //import App from './App'
 
-import App from './routes/index';
+import App from './routes/App';
 import './index.css'
 
 // Import the index reducer and sagas

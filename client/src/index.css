@@ -31,3 +31,28 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
   monospace;
 }
+
+.centered-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.square {
+  width: 767px;
+  /* height: 200px; */
+  /* background-color: blue; Change the color as needed */
+}
+
+/* Media queries for responsive layout */
+@media (max-width: 767px) {
+  .centered-container {
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .square {
+    width: 100vw;
+    /* height: 100vh; */
+  }
+}
