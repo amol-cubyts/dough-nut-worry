@@ -30,14 +30,28 @@ const openai = new OpenAIApi(configuration);
 
 // console.log(response)
 
-app.get("/openai/text", async (req, res) => {
+const getThePrompt = ({
+  isNonVeg = true,
+  ingredients = [],
+  cuisine = "Indian",
+  occasion = "lunch",
+  excludedDishes = [],
+}) => {
+  return `list of ${
+    isNonVeg ? "non" : ""
+  } vegetarian ${cuisine} meal for ${occasion}  ${
+    ingredients.length > 0 ? `that can use ingredients "${ingredients.join(",")}"` : ""
+  }.${
+    excludedDishes.length > 0 ? ` Exclude "${excludedDishes.join(", ")}" from suggestion` : ""
+  }`;
+};
+
+app.post("/openai/text", async (req, res) => {
   try {
-    const { text } = req.body;
     //   try {
     const apiKey = process.env.OPENAI_API_KEY; // Replace with your OpenAI API key
 
-    const prompt =
-      'list of non vegetarian Indian meal for dinner that can use ingredients "aloo", "methi", "tomato" and can me cooked in 15 mins. Exclude "Veggie Stir-Fry", "Jeera Rice with Dal" from suggestion'; // Modify the prompt as needed
+    const prompt = getThePrompt(req.body); // Modify the prompt as needed
 
     const apiUrl =
       "https://api.openai.com/v1/engines/text-davinci-003/completions";
@@ -52,33 +66,37 @@ app.get("/openai/text", async (req, res) => {
       max_tokens: 50, // Adjust as needed
     };
 
-    axios
-      .post(apiUrl, data, { headers })
-      .then((response) => {
-        console.log(response.data);
-        const choicesText = response.data.choices[0].text.trim();
-        const choicesArray = choicesText
-          .split("\n")
-          .filter((item) => item.trim() !== "");
+    res.status(200).json({
+      // data: response && response.data ? response.data : [],
+      data: prompt,
+      // choicesJSON,
+    });
+    // axios
+    //   .post(apiUrl, data, { headers })
+    //   .then((response) => {
+    //     console.log(response.data);
+    //     const choicesText = response.data.choices[0].text.trim();
+    //     const choicesArray = choicesText
+    //       .split("\n")
+    //       .filter((item) => item.trim() !== "");
 
-        // Create an array of choices in JSON format
-        const choicesJSON = choicesArray.map((choice, index) => {
-          return {
-            id: index + 1,
-            name: choice.trim(),
-          };
-        });
-        res
-          .status(200)
-          .json({
-            data: response && response.data ? response.data : [],
-            choicesJSON,
-          });
-      })
-      .catch((error) => {
-        console.error("Error:", error.message);
-        res.status(500).json({ error });
-      });
+    //     // Create an array of choices in JSON format
+    //     const choicesJSON = choicesArray.map((choice, index) => {
+    //       return {
+    //         id: index + 1,
+    //         name: choice.trim(),
+    //       };
+    //     });
+    //     res.status(200).json({
+    //       data: response && response.data ? response.data : [],
+    //       // data: prompt,
+    //       choicesJSON,
+    //     });
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error:", error.message);
+    //     res.status(500).json({ error });
+    //   });
     //    working
     //
     //     const data = await axios.post(
